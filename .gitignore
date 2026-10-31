@@ -1,0 +1,9 @@
+# Rust
+/renewer/target
+
+# Node
+node_modules/
+
+# Runtime data created by the server
+xray-sing/
+*.log
