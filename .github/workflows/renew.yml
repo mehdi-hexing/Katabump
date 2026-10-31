@@ -1,0 +1,61 @@
+name: Katabump Auto Renew
+
+on:
+  schedule:
+    # Every 3 days, comfortably inside the 4-day renewal window.
+    - cron: "0 12 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: katabump-renew
+  cancel-in-progress: false
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: renewer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: renewer
+
+      - name: Build
+        run: cargo build --release --locked
+
+      # Chrome and chromedriver are preinstalled on ubuntu-latest.
+      - name: Start chromedriver
+        run: |
+          driver="${CHROMEWEBDRIVER:-/usr/local/share/chromedriver-linux64}/chromedriver"
+          "$driver" --port=9515 > chromedriver.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:9515/status > /dev/null && exit 0
+            sleep 1
+          done
+          echo "chromedriver did not start" >&2
+          cat chromedriver.log >&2
+          exit 1
+
+      - name: Renew servers
+        env:
+          # Preferred: one JSON secret holding any number of accounts.
+          KATABUMP_ACCOUNTS: ${{ secrets.KATABUMP_ACCOUNTS }}
+          # Single-account secrets (used only if the one above is empty).
+          # SERVER_ID is optional; a built-in default id is used when unset.
+          KATABUMP_EMAIL: ${{ secrets.KATABUMP_EMAIL }}
+          KATABUMP_PASSWORD: ${{ secrets.KATABUMP_PASSWORD }}
+          SERVER_ID: ${{ secrets.SERVER_ID }}
+          # Optional: use another panel address.
+          KATABUMP_URL: ${{ secrets.KATABUMP_URL }}
+          WEBDRIVER_URL: http://localhost:9515
+        run: ./target/release/katabump-renewer
