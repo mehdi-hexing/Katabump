@@ -1,0 +1,28 @@
+{
+  "name": "xray-sing",
+  "version": "1.0.0",
+  "description": "Multi-protocol proxy server (Hysteria2, VLESS, REALITY, ShadowTLS, Shadowsocks, SOCKS5, HTTP) on a single public port, with a web panel and subscription links. Built for Katabump and similar Node.js hosts.",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "proxy",
+    "sing-box",
+    "xray",
+    "hysteria2",
+    "vless",
+    "reality",
+    "katabump"
+  ],
+  "dependencies": {
+    "axios": "^1.7.7",
+    "express": "^4.21.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
