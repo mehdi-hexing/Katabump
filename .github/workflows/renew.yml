@@ -50,6 +50,12 @@ jobs:
         env:
           # Preferred: one JSON secret holding any number of accounts.
           KATABUMP_ACCOUNTS: ${{ secrets.KATABUMP_ACCOUNTS }}
+          # Use this when the login page shows a CAPTCHA: log in by hand, solve the
+          # CAPTCHA yourself, export the panel cookies and paste them into the
+          # KATABUMP_COOKIES secret (JSON from Cookie-Editor, or "name=value; ...").
+          KATABUMP_COOKIES: ${{ secrets.KATABUMP_COOKIES }}
+          # Optional: your own browser's User-Agent (Cloudflare cookies are tied to it).
+          KATABUMP_USER_AGENT: ${{ secrets.KATABUMP_USER_AGENT }}
           # Single-account secrets (used only if the one above is empty).
           # SERVER_ID is optional; a built-in default id is used when unset.
           KATABUMP_EMAIL: ${{ secrets.KATABUMP_EMAIL }}
