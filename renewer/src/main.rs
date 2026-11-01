@@ -19,13 +19,22 @@ async fn process_account(webdriver_url: &str, account: &Account) -> Result<usize
         renewer::login(&driver, &account.email, &account.password).await?;
         println!("  logged in");
 
-        let mut failures = 0;
-        for server in account
+        let mut servers: Vec<String> = account
             .servers
             .iter()
-            .map(|s| s.trim())
+            .map(|s| s.trim().to_owned())
             .filter(|s| !s.is_empty())
-        {
+            .collect();
+        if servers.is_empty() {
+            servers = renewer::discover_servers(&driver).await?;
+            if servers.is_empty() {
+                anyhow::bail!("no servers found on the dashboard");
+            }
+            println!("  found {} server(s) on the dashboard", servers.len());
+        }
+
+        let mut failures = 0;
+        for server in servers.iter().map(|s| s.as_str()) {
             match renewer::renew_server(&driver, server).await {
                 Ok(Outcome::Renewed) => println!("  [{server}] renewed"),
                 Ok(Outcome::NotAvailable) => {
