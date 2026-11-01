@@ -16,8 +16,20 @@ async fn process_account(webdriver_url: &str, account: &Account) -> Result<usize
     let driver = renewer::open_session(webdriver_url).await?;
 
     let result = async {
-        renewer::login(&driver, &account.email, &account.password).await?;
-        println!("  logged in");
+        if !account.cookie_list.is_empty() {
+            match renewer::login_with_cookies(&driver, &account.cookie_list).await {
+                Ok(()) => println!("  logged in with cookies"),
+                Err(err) if account.has_credentials() => {
+                    eprintln!("  cookie login failed ({err:#}); trying email and password");
+                    renewer::login(&driver, &account.email, &account.password).await?;
+                    println!("  logged in");
+                }
+                Err(err) => return Err(err),
+            }
+        } else {
+            renewer::login(&driver, &account.email, &account.password).await?;
+            println!("  logged in");
+        }
 
         let mut servers: Vec<String> = account
             .servers
